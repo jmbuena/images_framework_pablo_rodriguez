@@ -64,3 +64,6 @@
 [submodule "regression/alignment/wdann_landmarks"]
 	path = regression/alignment/wdann_landmarks
 	url = git@github.com:pcr-upm/wdann_landmarks.git
+[submodule "detection/detr20_detection"]
+	path = detection/detr20_detection
+	url = git@github.com:pcr-upm/detr20_detection.git
