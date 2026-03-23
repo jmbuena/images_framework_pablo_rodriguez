@@ -215,15 +215,15 @@ class COCO(Database):
             obj.bb = (float(bbox[0]), float(bbox[1]), float(bbox[0]+bbox[2]), float(bbox[1]+bbox[3]))
             # obj.multipolygon = [np.array([[[pt[0], pt[1]]] for pt in list(zip(contour[::2], contour[1::2]))], dtype=float) for contour in contours]
             obj.add_category(GenericCategory(list(self._categories.values())[int(parts[(5*idx)+7])-1]))
-            if not isinstance(obj, PersonObject):
-                continue
-            for label in list(itertools.chain.from_iterable(self._landmarks.values())):
-                lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
-                pos = (int(landmarks[(3*label)]), int(landmarks[(3*label)+1]))
-                vis = int(landmarks[(3*label)+2])
-                if vis == 0:  # landmark is not in the image
-                    continue
-                obj.add_landmark(GenericLandmark(label, lp, pos, bool(vis == 2)), lps[type(lp)])
+            # if not isinstance(obj, PersonObject):
+            #     continue
+            # for label in list(itertools.chain.from_iterable(self._landmarks.values())):
+            #     lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
+            #     pos = (int(landmarks[(3*label)]), int(landmarks[(3*label)+1]))
+            #     vis = int(landmarks[(3*label)+2])
+            #     if vis == 0:  # landmark is not in the image
+            #         continue
+            #     obj.add_landmark(GenericLandmark(label, lp, pos, bool(vis == 2)), lps[type(lp)])
             image.add_object(obj)
         seq.add_image(image)
         return seq
