@@ -67,3 +67,6 @@
 [submodule "detection/detr20_detection"]
 	path = detection/detr20_detection
 	url = git@github.com:pcr-upm/detr20_detection.git
+[submodule "classification/cvprw26_recognition"]
+	path = classification/cvprw26_recognition
+	url = git@github.com:pcr-upm/cvprw26_recognition.git
