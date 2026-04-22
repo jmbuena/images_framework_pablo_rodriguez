@@ -93,7 +93,7 @@ class FER2013(Database):
         from images_framework.categories.emotions import Emotion as Oe
         super().__init__()
         self._names = ['fer2013']
-        self._categories = {0: Oe.FACE.ANGRY, 1: Oe.FACE.DISGUST, 2: Oe.FACE.FEAR, 3: Oe.FACE.HAPPY, 4: Oe.FACE.NEUTRAL, 5: Oe.FACE.SAD, 6: Oe.FACE.SURPRISE}
+        self._categories = {0: Oe.FACE.ANGER, 1: Oe.FACE.DISGUST, 2: Oe.FACE.FEAR, 3: Oe.FACE.HAPPINESS, 4: Oe.FACE.NEUTRAL, 5: Oe.FACE.SADNESS, 6: Oe.FACE.SURPRISE}
         self._colors = get_palette(len(self._categories))
 
     def load_filename(self, path, db, line):
@@ -762,6 +762,42 @@ class WIDER(Database):
             obj.bb = (int(round(float(bbox[0]))), int(round(float(bbox[1]))), int(round(float(bbox[0]+bbox[2]))), int(round(float(bbox[1]+bbox[3]))))
             obj.add_category(GenericCategory(self._categories[0]))
             image.add_object(obj)
+        seq.add_image(image)
+        return seq
+
+
+class RAF(Database):
+    def __init__(self):
+        from images_framework.regression.alignment.landmarks import FaceLandmarkPart as Pf
+        from images_framework.categories.emotions import Emotion as Oe
+        super().__init__()
+        self._names = ['raf']
+        self._landmarks = {Pf.LEYE: (101,), Pf.REYE: (102,), Pf.NOSE: (17,), Pf.TMOUTH: (20, 21)}
+        self._categories = {1: Oe.FACE.SURPRISE, 2: Oe.FACE.FEAR, 3: Oe.FACE.DISGUST, 4: Oe.FACE.HAPPINESS, 5: Oe.FACE.SADNESS, 6: Oe.FACE.ANGER, 7: Oe.FACE.NEUTRAL}
+        self._colors = get_palette(len(self._categories))
+
+    def load_filename(self, path, db, line):
+        from PIL import Image
+        from .annotations import PersonObject
+        from images_framework.regression.alignment.landmarks import lps, PersonLandmarkPart as Pl
+        seq = GenericGroup()
+        parts = line.strip().split(';')
+        image = GenericImage(path + parts.pop(0))
+        width, height = Image.open(image.filename).size
+        image.tile = np.array([0, 0, width, height])
+        indices = [101, 102, 17, 20, 21]
+        obj = PersonObject()
+        obj.bb = (int(round(float(parts.pop(0)))), int(round(float(parts.pop(0)))), int(round(float(parts.pop(0)))), int(round(float(parts.pop(0)))))
+        for idx in range(0, len(indices)):
+            label = indices[idx]
+            lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
+            pos = (float(parts.pop(0)), float(parts.pop(0)))
+            obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
+        obj.add_attribute(GenericAttribute('gender', int(parts.pop(0))))
+        obj.add_attribute(GenericAttribute('race', int(parts.pop(0))))
+        obj.add_attribute(GenericAttribute('age', int(parts.pop(0))))
+        obj.add_category(GenericCategory(self._categories[int(parts.pop(0))]))
+        image.add_object(obj)
         seq.add_image(image)
         return seq
 

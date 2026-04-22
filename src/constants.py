@@ -75,6 +75,7 @@ class Classifiers(Enum):
     Different classification algorithms.
     """
     RESNET15_RECOGNITION = 'resnet15_recognition'
+    CVPRW26_RECOGNITION = 'cvprw26_recognition'
 
 
 @unique
