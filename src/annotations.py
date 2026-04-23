@@ -81,6 +81,7 @@ class PersonObject(GenericObject):
         self.landmarks[part.value].setdefault(lnd.part.value, list([])).append(lnd)
 
     def clear(self):
+        super().clear()
         self.attributes.clear()
         self.landmarks[Pl.FACE.value].clear()
         self.landmarks[Pl.HAND.value].clear()
