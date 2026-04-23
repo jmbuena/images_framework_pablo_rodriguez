@@ -20,16 +20,6 @@ class GenericCategory:
         self.score = score
 
 
-class GenericAttribute:
-    """
-    Generic attribute data.
-    """
-    def __init__(self, label, value, confidence=-1):
-        self.label = label
-        self.value = value
-        self.confidence = confidence
-
-
 class GenericLandmark:
     """
     Generic landmark data.

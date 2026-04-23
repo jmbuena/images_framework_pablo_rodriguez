@@ -5,7 +5,7 @@ __email__ = 'roberto.valle@upm.es'
 
 import abc
 import numpy as np
-from .annotations import GenericGroup, GenericImage, GenericObject, GenericCategory, GenericAttribute, GenericLandmark
+from .annotations import GenericGroup, GenericImage, GenericObject, GenericCategory, GenericLandmark
 from .categories import Name, Category as Oi
 
 
@@ -341,6 +341,8 @@ class AFLW(Database):
         super().__init__()
         self._names = ['aflw']
         self._landmarks = {Pf.LEYEBROW: (1, 2, 3), Pf.REYEBROW: (4, 5, 6), Pf.LEYE: (7, 101, 8), Pf.REYE: (11, 102, 12), Pf.NOSE: (16, 17, 18), Pf.TMOUTH: (20, 103, 21), Pf.LEAR: (15,), Pf.REAR: (19,), Pf.CHIN: (24,)}
+        self._gender = {'m': Name('Male'), 'f': Name('Female')}
+        self._glasses = {True: Name('Glasses'), False: Name('No glasses')}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -360,8 +362,8 @@ class AFLW(Database):
         obj.bb = (int(parts[1]), int(parts[2]), int(parts[1])+int(parts[3]), int(parts[2])+int(parts[4]))
         obj.add_category(GenericCategory(Oi.FACE))
         obj.headpose = Rotation.from_euler('YXZ', [float(parts[5]), float(parts[6]), float(parts[7])], degrees=True).as_matrix()
-        obj.add_attribute(GenericAttribute('gender', 'male' if parts[8] == 'm' else 'female'))
-        obj.add_attribute(GenericAttribute('glasses', bool(parts[9])))
+        obj.add_attribute(GenericCategory(self._gender[parts[8]]))
+        obj.add_attribute(GenericCategory(self._glasses[bool(parts[9])]))
         num_landmarks = int(parts[10])
         indices = [1, 2, 3, 4, 5, 6, 7, 101, 8, 11, 102, 12, 15, 16, 17, 18, 19, 20, 103, 21, 24]
         for idx in range(0, num_landmarks):
@@ -523,6 +525,13 @@ class DAD(Database):
         super().__init__()
         self._names = ['dad']
         self._landmarks = {Pf.LEYEBROW: (1983, 2189, 3708, 336, 335, 3153, 3705, 2178, 3684, 3741, 3148, 3696, 2585, 2565, 2567, 3764), Pf.REYEBROW: (570, 694, 3865, 17, 16, 2134, 3863, 673, 3851, 3880, 2121, 3859, 1448, 1428, 1430, 3893), Pf.LEYE: (2441, 2446, 2382, 2381, 2383, 2496, 3690, 2493, 2491, 2465, 3619, 3632, 2505, 2273, 2276, 2355, 2295, 2359, 2267, 2271, 2403, 2437), Pf.REYE: (1183, 1194, 1033, 1023, 1034, 1345, 3856, 1342, 1340, 1243, 3827, 3833, 1354, 824, 827, 991, 883, 995, 814, 822, 1096, 1175), Pf.NOSE: (3540, 3704, 3555, 3560, 3561, 3501, 3526, 3563, 2793, 2751, 3092, 3099, 3102, 2205, 2193, 2973, 2868, 2921, 2920, 1676, 1623, 2057, 2064, 2067, 723, 702, 1895, 1757, 1818, 1817, 3515, 3541), Pf.TMOUTH: (2828, 2832, 2833, 2850, 2813, 2811, 2774, 3546, 1657, 1694, 1696, 1735, 1716, 1715, 1711, 1719, 1748, 1740, 1667, 1668, 3533, 2785, 2784, 2855, 2863, 2836), Pf.BMOUTH: (2891, 2890, 2892, 2928, 2937, 3509, 1848, 1826, 1789, 1787, 1788, 1579, 1773, 1774, 1795, 1802, 1865, 3503, 2948, 2905, 2898, 2881, 2880, 2715), Pf.LEAR: (3386, 3381, 1962, 2213, 2259, 2257, 2954, 3171, 2003), Pf.REAR: (3554, 576, 2159, 1872, 798, 802, 731, 567, 3577, 3582), Pf.CHIN: (3390, 3391, 3396, 3400, 3599, 3593, 3588), Pf.FOREHEAD: (3068, 2196, 2091, 3524, 628, 705, 2030)}
+        self._quality = {0: Name('HQ'), 1: Name('LQ')}
+        self._gender = {0: Name('Female'), 1: Name('Male'), 2: Name('Undefined')}
+        self._expression = {True: Name('Expression'), False: Name('No expression')}
+        self._age = {0: Name('Child'), 1: Name('Young'), 2: Name('Middle aged'), 3: Name('Senior')}
+        self._occlusion = {True: Name('Occlusion'), False: Name('No occlusion')}
+        self._pose = {0: Name('Front'), 1: Name('Sided'), 2: Name('Atypical')}
+        self._light = {True: Name('Light'), False: Name('No light')}
         self._categories = {0: Oi.FACE}
         self._colors = [(0, 255, 0)]
 
@@ -558,13 +567,13 @@ class DAD(Database):
                 pos = (float(flame_vertices2d[idx, 0]), height-float(flame_vertices2d[idx, 1]))
                 obj.add_landmark(GenericLandmark(idx, lp, pos, True), lps[type(lp)])
         if len(parts) != 8:  # train, test
-            obj.add_attribute(GenericAttribute('quality', parts[len(parts)-7]))
-            obj.add_attribute(GenericAttribute('gender',  parts[len(parts)-6]))
-            obj.add_attribute(GenericAttribute('expression', bool(parts[len(parts)-5] == 'True')))
-            obj.add_attribute(GenericAttribute('age', parts[len(parts)-4]))
-            obj.add_attribute(GenericAttribute('occlusions', bool(parts[len(parts)-3] == 'True')))
-            obj.add_attribute(GenericAttribute('pose', parts[len(parts)-2]))
-            obj.add_attribute(GenericAttribute('standard_light', bool(parts[len(parts)-1] == 'True')))
+            obj.add_attribute(GenericCategory(self._quality[int(parts[len(parts)-7])]))
+            obj.add_attribute(GenericCategory(self._gender[int(parts[len(parts)-6])]))
+            obj.add_attribute(GenericCategory(self._expression[bool(parts[len(parts)-5])]))
+            obj.add_attribute(GenericCategory(self._age[int(parts[len(parts)-4])]))
+            obj.add_attribute(GenericCategory(self._occlusion[bool(parts[len(parts)-3])]))
+            obj.add_attribute(GenericCategory(self._pose[int(parts[len(parts)-2])]))
+            obj.add_attribute(GenericCategory(self._light[bool(parts[len(parts)-1])]))
         obj.bb = cv2.boundingRect(np.array([[pt.pos for pt in list(itertools.chain.from_iterable(obj.landmarks[Pl.FACE.value].values()))]]).astype(int))
         obj.bb = (obj.bb[0], obj.bb[1], obj.bb[0]+obj.bb[2], obj.bb[1]+obj.bb[3])
         # dirname = path + 'landmarks/'
@@ -774,6 +783,9 @@ class RAF(Database):
         super().__init__()
         self._names = ['raf']
         self._landmarks = {Pf.LEYE: (101,), Pf.REYE: (102,), Pf.NOSE: (17,), Pf.TMOUTH: (20, 21)}
+        self._gender = {0: Name('Male'), 1: Name('Female'), 2: Name('Unsure')}
+        self._race = {0: Name('Caucasian'), 1: Name('African-American'), 2: Name('Asian')}
+        self._age = {0: Name('0-3'), 1: Name('4-19'), 2: Name('20-39'), 3: Name('40-69'), 4: Name('70+')}
         self._categories = {1: Oe.FACE.SURPRISE, 2: Oe.FACE.FEAR, 3: Oe.FACE.DISGUST, 4: Oe.FACE.HAPPINESS, 5: Oe.FACE.SADNESS, 6: Oe.FACE.ANGER, 7: Oe.FACE.NEUTRAL}
         self._colors = get_palette(len(self._categories))
 
@@ -794,9 +806,9 @@ class RAF(Database):
             lp = list(self._landmarks.keys())[next((ids for ids, xs in enumerate(self._landmarks.values()) for x in xs if x == label), None)]
             pos = (float(parts.pop(0)), float(parts.pop(0)))
             obj.add_landmark(GenericLandmark(label, lp, pos, True), lps[type(lp)])
-        obj.add_attribute(GenericAttribute('gender', int(parts.pop(0))))
-        obj.add_attribute(GenericAttribute('race', int(parts.pop(0))))
-        obj.add_attribute(GenericAttribute('age', int(parts.pop(0))))
+        obj.add_attribute(GenericCategory(self._gender[int(parts.pop(0))]))
+        obj.add_attribute(GenericCategory(self._race[int(parts.pop(0))]))
+        obj.add_attribute(GenericCategory(self._age[int(parts.pop(0))]))
         obj.add_category(GenericCategory(self._categories[int(parts.pop(0))]))
         image.add_object(obj)
         seq.add_image(image)
