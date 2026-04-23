@@ -64,8 +64,8 @@ class PersonObject(GenericObject):
         self.landmarks[Pl.HAND.value] = {part.value: list([]) for part in Ph}
         self.landmarks[Pl.BODY.value] = {part.value: list([]) for part in Pb}
 
-    def add_attribute(self, att: GenericAttribute):
-        self.attributes.append(att)
+    def add_attribute(self, attribute: GenericCategory):
+        self.attributes.append(attribute)
 
     def add_landmark(self, lnd: GenericLandmark, part: Pl):
         self.landmarks[part.value].setdefault(lnd.part.value, list([])).append(lnd)
