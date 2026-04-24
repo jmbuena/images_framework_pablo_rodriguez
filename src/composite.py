@@ -37,6 +37,10 @@ class Composite(Component):
     def evaluate(self, fs, ann, pred):
         for child in self._children:
             child.evaluate(fs, ann, pred)
+            
+    def save_coco_format(self, fs, pred, last):
+        for child in self._children:
+            child.save_coco_format(fs, pred, last)            
 
     def save(self, dirname, pred):
         for child in self._children:

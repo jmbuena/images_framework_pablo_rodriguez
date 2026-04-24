@@ -58,6 +58,8 @@ class Alignment(Component):
 
         axis = np.eye(3)
         ann_order = [(img_ann.filename, img_ann.tile) for img_ann in ann.images]  # keep order among 'ann' and 'pred'
+        left_libs = [Pb.LANKLE, Pb.LKNEE, Pb.LHIP, Ph.LWRIST, Pb.LELBOW, Pb.LSHOULDER]
+        right_libs = [Pb.RANKLE, Pb.RKNEE, Pb.RHIP, Ph.RWRIST, Pb.RELBOW, Pb.RSHOULDER]
         for img_pred in pred.images:
             # Detection().show(viewer, ann, pred)
             image_idx = [np.array_equal(img_pred.filename, f) & np.array_equal(img_pred.tile, t) for f, t in ann_order].index(True)
@@ -89,15 +91,27 @@ class Alignment(Component):
                                     continue
                                 # Connection between parts using the last index of each part
                                 org, dst = obj.landmarks[lps[type(part_org)].value][part_org.value][-1], obj.landmarks[lps[type(part_dst)].value][part_dst.value][-1]
-                                color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
+#                                color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
+                                if not (part_org is Pb.LHIP and part_dst is Pb.LSHOULDER) and part_org in left_libs and part_dst in left_libs:
+                                    color = (128, 0, 64) if objs_idx == 0 else (0, 255, 0)
+                                elif not (part_org is Pb.RHIP and part_dst is Pb.RSHOULDER) and part_org in right_libs and part_dst in right_libs:
+                                    color = (180, 180, 180) if objs_idx == 0 else (0, 180, 255)
+                                else:
+                                    color = (255, 255, 255) if objs_idx == 0 else (255, 170, 0)
                                 viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
                     # Draw landmarks with a black border
                     for lnds in [landmarks for lps in obj.landmarks.values() for landmarks in lps.values()]:
-                        for org, dst in pairwise(lnds):
-                            color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
-                            viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
+#                        for org, dst in pairwise(lnds):
+#                            color = ((0,122,255) if (org.visible and dst.visible) else (0,0,255)) if objs_idx == 0 else ((0,255,0) if (org.visible and dst.visible) else (255,0,0))
+#                            viewer.line(img_pred, (int(round(org.pos[0])), int(round(org.pos[1]))), (int(round(dst.pos[0])), int(round(dst.pos[1]))), color, int(round(thickness*0.5)))
                         for lnd in lnds:
-                            color = ((0,122,255) if lnd.visible else (0,0,255)) if objs_idx == 0 else ((0,255,0) if lnd.visible else (255,0,0))
+#                            color = ((0,122,255) if lnd.visible else (0,0,255)) if objs_idx == 0 else ((0,255,0) if lnd.visible else (255,0,0))
+                            if lnd.part in left_libs:
+                                color = (128, 0, 64) if objs_idx == 0 else (0, 255, 0)
+                            elif lnd.part in right_libs:
+                                color = (180, 180, 180) if objs_idx == 0 else (0, 180, 255)
+                            else:
+                                color = (255, 255, 255) if objs_idx == 0 else (255, 170, 0)
                             viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=0, color=color, thickness=thickness-1)
                             viewer.circle(img_pred, (int(round(lnd.pos[0])), int(round(lnd.pos[1]))), radius=int(round(thickness*0.5)), color=(0,0,0), thickness=1)
 
@@ -133,3 +147,22 @@ class Alignment(Component):
             root, extension = os.path.splitext(img_pred.filename)
             with open(dirname + os.path.basename(root) + '.json', 'w') as ofs:
                 json.dump(output_json, ofs)
+
+    def save_coco_format(self, fs, pred, last):
+        # id_component;filename;num_ann;num_pred[;ann_id;ann_bb;ann_pose;num_ann_landmarks[;ann_label;ann_pos;ann_visible;ann_confidence]][;pred_id;pred_bb;pred_pose;num_pred_landmarks[;pred_label;pred_pos;pred_visible;pred_confidence]]
+        for img_pred in pred.images:
+            for i in range(len(img_pred.objects)):
+                landmarks = [0]*(17*3)
+                lista = [(lnd.label, lnd.pos) for lnds in [landmarks for lps in img_pred.objects[i].landmarks.values() for landmarks in lps.values()] for lnd in lnds]
+                for pos, coord in lista:
+                    landmarks[pos*3], landmarks[pos*3+1], landmarks[pos*3+2] = round(coord[0], 2), round(coord[1],2), 1
+                prediction = {
+                    "image_id": img_pred.imageId,
+                    "category_id": 1,
+                    "keypoints": landmarks,
+                    "score": 1
+                }
+                json.dump(prediction, fs)
+                if not last or i != len(img_pred.objects)-1:
+                    fs.write(",")
+                fs.write("\n")

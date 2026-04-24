@@ -19,7 +19,6 @@ class GenericCategory:
         self.label = label
         self.score = score
 
-
 class GenericLandmark:
     """
     Generic landmark data.
@@ -30,7 +29,6 @@ class GenericLandmark:
         self.pos = pos  # (pt_x, pt_y)
         self.visible = visible
         self.confidence = confidence
-
 
 class GenericObject:
     """
@@ -92,8 +90,9 @@ class GenericImage:
     """
     Generic image data.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, image_id=None):
         self.filename = filename
+        self.image_id=image_id
         self.tile = np.array([-1, -1, -1, -1])  # (pt_x, pt_y, pt_x+width, pt_y+height)
         self.timestamp = ''
         self.objects = list([])

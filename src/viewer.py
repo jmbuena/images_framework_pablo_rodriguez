@@ -7,6 +7,7 @@ import os
 import cv2
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 from .utils import load_geoimage, save_geoimage, DepthMode, ChannelsMode
 
 
